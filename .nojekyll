@@ -1,0 +1,5 @@
+# create .nojekyll so GitHub Pages will not try to run Jekyll
+echo > .nojekyll
+git add .nojekyll
+git commit -m "Disable Jekyll for GitHub Pages"
+git push
