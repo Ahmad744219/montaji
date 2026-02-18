@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>موترسایکل – A3 (بهبود سربرگ/پاورقی)</title>
+  <title>موترسایکل – دو مرحله‌ای (مرجع + مکتوب دستی)</title>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
   <style>
     /* reset & base */
@@ -11,7 +11,6 @@
     body { background: #f0f2f5; padding: 12px 10px; display: flex; flex-direction: column; align-items: center; }
     .main-container { max-width: 1400px; width: 100%; }
 
-    /* header & controls */
     .app-header {
       background: linear-gradient(145deg, #1e3c5c, #2b4c7c);
       color: white;
@@ -28,38 +27,45 @@
     .app-header h1 small { font-size: 0.85rem; opacity: 0.9; display: block; margin-top: 4px; }
     .status-badge { background: #e9f0f9; border-radius: 24px; padding: 4px 10px; color: #1e3c5c; font-weight: 600; font-size: 0.86rem; }
 
-    .input-panel {
+    /* پنل دو مرحله‌ای */
+    .step-panel {
       background: white;
       border-radius: 12px;
-      padding: 10px 12px;
+      padding: 12px 15px;
       box-shadow: 0 6px 12px rgba(0,0,0,0.04);
-      margin-bottom: 14px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px 14px;
-      align-items: flex-end;
-      border: 1px solid #e6edf5;
+      margin-bottom: 18px;
+      border: 1px solid #d9e4f0;
+    }
+    .step-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1e3c5c;
+      border-right: 5px solid #2b4c7c;
+      padding-right: 10px;
+      margin-bottom: 12px;
     }
     .file-zone { flex: 2; min-width: 200px; }
     .file-label { background: #eef3f9; padding: 8px 10px; border-radius: 22px; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: #1e3c5c; border: 1px dashed #7b9eb5; cursor: pointer; font-size: 0.9rem; }
     .file-info { margin-top: 6px; font-size: 0.82rem; color: #2c3e50; word-break: break-word; }
 
-    .image-upload-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0; }
+    .image-upload-row { display: flex; flex-wrap: wrap; gap: 15px; margin: 12px 0; }
     .image-upload-item { display: flex; flex-direction: column; gap: 6px; }
     .image-preview { max-width: 140px; max-height: 50px; border: 1px solid #ccc; border-radius: 6px; padding: 2px; background: #fafafa; object-fit: contain; }
 
-    .date-fields { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+    .date-fields { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-top: 8px; }
     .field-group { display: flex; flex-direction: column; min-width: 95px; }
     .field-group label { font-weight: 600; color: #1e3c5c; margin-bottom: 4px; font-size: 0.82rem; }
     .field-group input { border: 1px solid #cbdbe6; border-radius: 18px; padding: 7px 8px; font-size: 0.95rem; background: #fafcff; transition: 0.12s; direction: rtl; }
 
-    .action-buttons { display: flex; gap: 8px; align-items: center; margin-left: auto; flex-wrap: wrap; }
-    .btn-primary { background: #1e3c5c; border: none; padding: 8px 12px; border-radius: 24px; color: white; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(30,60,92,0.18); }
-    .btn-secondary { background: white; border: 1px solid #a0b8cf; padding: 8px 10px; border-radius: 24px; font-weight: 600; color: #1e3c5c; cursor: pointer; }
+    .action-buttons { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+    .btn-primary { background: #1e3c5c; border: none; padding: 8px 14px; border-radius: 24px; color: white; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(30,60,92,0.18); }
+    .btn-secondary { background: white; border: 1px solid #a0b8cf; padding: 8px 12px; border-radius: 24px; font-weight: 600; color: #1e3c5c; cursor: pointer; }
+    .btn-success { background: #2e6b2e; border: none; padding: 8px 14px; border-radius: 24px; color: white; font-weight: 600; cursor: pointer; }
+    
     .btn-primary:hover { opacity: 0.95; }
     .btn-secondary:hover { background: #eef6fc; }
 
-    /* PREVIEW / SHEETS (A3 landscape) */
+    /* PREVIEW */
     .a4-preview {
       width: 100%;
       background: #eef4fb;
@@ -73,8 +79,6 @@
       gap: 12px;
       overflow-x: auto;
     }
-
-    /* A3 landscape printable width = 420mm - margins */
     .a4-paper {
       width: calc(420mm - 20mm);
       background: white;
@@ -88,9 +92,7 @@
       border-radius: 4px;
       padding: 6px;
     }
-
-    /* header/footer container (90px) — images centered and framed */
-    .header-container {
+    .header-container, .footer-container {
       width: 100%;
       height: 90px;
       display: flex;
@@ -101,111 +103,82 @@
       padding: 6px 10px;
       border-bottom: 1px dashed #d0d7de;
     }
-    .footer-container {
-      width: 100%;
-      height: 90px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(180deg,#fbfdff,#f7fbff);
-      overflow: hidden;
-      padding: 6px 10px;
-      border-top: 1px dashed #d0d7de;
-    }
-
-    /* improved sheet image styles */
-    .sheet-header-img,
-    .sheet-footer-img {
+    .footer-container { border-top: 1px dashed #d0d7de; border-bottom: none; }
+    .sheet-header-img, .sheet-footer-img {
       max-width: 98%;
-      max-height: calc(100% - 6px); /* leave small padding inside container */
+      max-height: calc(100% - 6px);
       display: block;
       border-radius: 6px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       transition: transform .18s ease;
       object-position: center center;
-      /* object-fit will be set dynamically by JS (cover/contain) */
     }
-    .sheet-header-img:hover,
-    .sheet-footer-img:hover { transform: translateY(-2px); }
-
-    /* small preview images in editor follow same 'nice' styling */
-    #headerPreview, #footerPreview {
-      max-width: 140px;
-      max-height: 48px;
-      object-fit: contain;
-      border-radius: 6px;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
-      display: inline-block;
-    }
-
     .table-container { padding: 4px 6px; background: white; overflow: visible; }
-
-    /* table: increased font, single-line, ellipsis */
+    
+    /* جدول با چیدمان بهبود یافته برای A3 landscape */
     .motor-table {
       width: 100%;
       border-collapse: collapse;
-      table-layout: fixed;
-      font-size: 10pt;
-      line-height: 1.05;
+      table-layout: fixed; /* fixed still, but we ensure columns are wide enough */
+      font-size: 9.5pt;    /* slightly smaller to fit more */
+      line-height: 1.2;
       border: 1px solid #111;
     }
-
-    /* column widths tuned for A3 landscape (sum ~100%) */
-    .motor-table th:nth-child(1)  { width: 5%; }   /* شماره */
-    .motor-table th:nth-child(2)  { width: 17%; }  /* نام شرکت */
-    .motor-table th:nth-child(3)  { width: 6%; }   /* نام سیکل */
-    .motor-table th:nth-child(4)  { width: 14%; }  /* انجین */
-    .motor-table th:nth-child(5)  { width: 15%; }  /* شاسی */
-    .motor-table th:nth-child(6)  { width: 6%; }   /* سی سی */
-    .motor-table th:nth-child(7)  { width: 6%; }   /* مدل */
-    .motor-table th:nth-child(8)  { width: 8%; }   /* مرجع */
-    .motor-table th:nth-child(9)  { width: 6%; }   /* مکتوب */
-    .motor-table th:nth-child(10) { width: 11%; }  /* تاریخ شمسی */
-    .motor-table th:nth-child(11) { width: 6%; }   /* تاریخ قمری */
+    
+    /* توزیع مناسب عرض ستون‌ها - مجموع 100% */
+    .motor-table th:nth-child(1)  { width: 5%; }   /* شماره سریال */
+    .motor-table th:nth-child(2)  { width: 14%; }  /* نام شرکت */
+    .motor-table th:nth-child(3)  { width: 5%; }   /* نام سیکل (BAJAJ) */
+    .motor-table th:nth-child(4)  { width: 12%; }  /* انجین */
+    .motor-table th:nth-child(5)  { width: 12%; }  /* شاسی */
+    .motor-table th:nth-child(6)  { width: 5%; }   /* سی سی */
+    .motor-table th:nth-child(7)  { width: 5%; }   /* مدل */
+    .motor-table th:nth-child(8)  { width: 9%; }   /* مرجع */
+    .motor-table th:nth-child(9)  { width: 8%; }   /* مکتوب */
+    .motor-table th:nth-child(10) { width: 13%; }  /* تاریخ شمسی (طولانی‌تر) */
+    .motor-table th:nth-child(11) { width: 12%; }  /* تاریخ قمری */
 
     .motor-table th, .motor-table td {
       border: 1px solid #2d2d2d;
-      padding: 6px 8px;
+      padding: 4px 3px;        /* کاهش فاصله داخلی برای جاگیری بهتر */
       text-align: center;
       vertical-align: middle;
       background-color: white;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: 10pt;
+      white-space: normal;     /* اجازه شکستن خط */
+      word-break: break-word;  /* شکستن کلمات طولانی */
+      overflow: visible;       /* حذف ellipsis */
+      text-overflow: clip;     /* اطمینان از عدم نمایش نقطه‌چین */
+      font-size: 9.5pt;
     }
     .motor-table th { background: #e9f1f9; font-weight: 700; color: #07223b; font-size: 9pt; }
 
-    /* specific smaller padding for reference and date columns */
-    .motor-table th:nth-child(8), .motor-table td:nth-child(8),
-    .motor-table th:nth-child(10), .motor-table td:nth-child(10),
-    .motor-table th:nth-child(11), .motor-table td:nth-child(11) {
-      padding: 3px 5px;
-      font-size: 9.5pt;
+    /* حاشیه‌های خاص برای خوانایی بهتر */
+    .motor-table td:nth-child(10), .motor-table td:nth-child(11) {
+      font-size: 9pt;  /* تاریخ‌ها کمی کوچکتر */
+      letter-spacing: 0.2px;
     }
 
-    /* responsive preview: horizontal scroll if necessary */
-    @media (max-width: 1400px) { .a4-paper { width: calc(420mm - 40mm); } }
-    @media (max-width: 1000px) { .a4-paper { width: calc(420mm - 60mm); } }
-    @media (max-width: 700px)  { .a4-paper { width: calc(420mm - 80mm); } }
-
-    /* Print: A3 landscape and tidy UI removal; keep header/footer heights at 90px */
-    @page { size: A3 landscape; margin: 10mm; }
+    .province-separator {
+      width: 100%;
+      background: #d4e3fd;
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #0b2d4b;
+      text-align: center;
+    }
     @media print {
-      .app-header, .input-panel, .btn-primary, .btn-secondary, .file-label, .status-badge, .image-preview, .small-note, #globalMessage { display: none !important; }
+      .app-header, .step-panel, .btn-primary, .btn-secondary, .btn-success, .file-label, .status-badge, .image-preview, .small-note, #globalMessage { display: none !important; }
       body { background: white; padding: 0; }
       .a4-preview { background: white; border: none; padding: 0; }
-      .a4-paper { width: auto; margin: 0; box-shadow: none; border-radius: 0; page-break-after: always; overflow: visible; padding: 0; }
-      .header-container { height: 90px; padding: 4px; overflow: hidden; }
-      .footer-container { height: 90px; padding: 4px; overflow: hidden; }
-      .table-container { padding: 0 8mm; overflow: visible; }
+      .a4-paper { width: auto; margin: 0; box-shadow: none; border-radius: 0; page-break-after: always; }
+      .header-container, .footer-container { height: 90px; }
       .motor-table { font-size: 9pt; }
-      .motor-table th, .motor-table td { padding: 4px 6px; }
-      .sheet-header-img, .sheet-footer-img { max-height: calc(100% - 6px); }
+      .motor-table th, .motor-table td { padding: 3px 2px; }
     }
-
-    /* messages */
-    .message { padding: 10px 12px; border-radius: 18px; margin: 12px 0; font-weight: 500; font-size: 0.95rem; }
+    .message { padding: 10px 12px; border-radius: 18px; margin: 12px 0; font-weight: 500; }
     .success { background: #dff0d8; color: #2e6b2e; border: 1px solid #b2dba2; }
     .error { background: #f8ddda; color: #a94442; border: 1px solid #ebbcbc; }
     .info { background: #d9edf7; color: #31708f; }
@@ -213,44 +186,29 @@
   </style>
 </head>
 <body>
-  <div class="main-container">
-    
-    <div class="app-header">
-      
-      <div>
-        <h1>📋 برگه‌های A3 موترسایکل<br><small>سربرگ/پاورقی بهبود یافته</small></h1>
-      </div>
-      <div class="status-badge" id="recordCounter">فایل بارگذاری نشده</div>
-      <!-- Top Menu with three buttons that redirect -->
-        <div class="top-menu" style="background: linear-gradient(135deg, #2c3e50, #4a6491); padding: 10px 20px; margin-bottom: 20px; border-radius: 8px; display: flex; gap: 15px; justify-content: flex-end; box-shadow: 0 2px 4px rgba(0,0,0,0.1); direction: rtl;">
-            <button style="background: white; color: #2c3e50; border: none; padding: 8px 16px; border-radius: 5px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-family: Arial, sans-serif;" onclick="location.href='./index.html'">مکتوب جفتی</button>
-            <button style="background: white; color: #2c3e50; border: none; padding: 8px 16px; border-radius: 5px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-family: Arial, sans-serif;" onclick="location.href='./big.html'">ساخت مکتوب تکی</button>
-            <button style="background: white; color: #2c3e50; border: none; padding: 8px 16px; border-radius: 5px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-family: Arial, sans-serif;" onclick="location.href='./jadval.html'">ساخت جدول</button>
-        </div>
+<div class="main-container">
+  <!-- سربرگ اصلی با سه دکمه -->
+  <div class="app-header">
+    <div>
+      <h1>📋 برگه‌های A3 موترسایکل – دو مرحله‌ای<br><small>مرجع + مکتوب دستی/خودکار</small></h1>
     </div>
+    <div class="status-badge" id="recordCounter">مرحله ۱</div>
+    <div class="top-menu" style="background: linear-gradient(135deg, #2c3e50, #4a6491); padding: 10px 20px; border-radius: 8px; display: flex; gap: 15px; justify-content: flex-end; direction: rtl;">
+      <button style="background: white; color: #2c3e50; border: none; padding: 8px 16px; border-radius: 5px; font-weight: 600; cursor: pointer;" onclick="location.href='./index.html'">مکتوب جفتی</button>
+      <button style="background: white; color: #2c3e50; border: none; padding: 8px 16px; border-radius: 5px; font-weight: 600; cursor: pointer;" onclick="location.href='./big.html'">ساخت مکتوب تکی</button>
+      <button style="background: white; color: #2c3e50; border: none; padding: 8px 16px; border-radius: 5px; font-weight: 600; cursor: pointer;" onclick="location.href='./jadval.html'">ساخت جدول</button>
+    </div>
+  </div>
 
-    <div class="input-panel">
+  <!-- پنل مرحله اول: تولید اکسل با شماره مکتوب و تاریخ -->
+  <div class="step-panel">
+    <div class="step-title">مرحله ۱: بارگذاری فایل اصلی و تولید اکسل شماره‌دار</div>
+    <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end;">
       <div class="file-zone">
-        <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display: none;">
-        <label for="excelFileInput" class="file-label">📂 انتخاب فایل Excel (موترسایکل)</label>
-        <div class="file-info" id="fileInfo">فایلی انتخاب نشده</div>
+        <input type="file" id="excelFileStep1" accept=".xlsx, .xls, .csv" style="display: none;">
+        <label for="excelFileStep1" class="file-label">📂 انتخاب فایل Excel (موترسایکل)</label>
+        <div class="file-info" id="fileInfoStep1">فایلی انتخاب نشده</div>
       </div>
-
-      <div class="image-upload-row">
-        <div class="image-upload-item">
-          <label>🖼️ سربرگ</label>
-          <input type="file" id="headerImageInput" accept="image/*" style="display: none;">
-          <label for="headerImageInput" class="file-label" style="padding: 6px 10px;">انتخاب سربرگ</label>
-          <img id="headerPreview" class="image-preview" src="#" alt="پیش‌نمایش سربرگ" style="display: none;">
-        </div>
-        <div class="image-upload-item">
-          <label>🖼️ پاورقی</label>
-          <input type="file" id="footerImageInput" accept="image/*" style="display: none;">
-          <label for="footerImageInput" class="file-label" style="padding: 6px 10px;">انتخاب پاورقی</label>
-          <img id="footerPreview" class="image-preview" src="#" alt="پیش‌نمایش پاورقی" style="display: none;">
-        </div>
-      </div>
-
       <div class="date-fields">
         <div class="field-group">
           <label>🔢 شروع مکتوب</label>
@@ -264,254 +222,376 @@
           <label>🌙 تاریخ قمری</label>
           <input type="text" id="dateQamari" value="۱۴۴۵/۱۰/۰۵">
         </div>
-        <div class="field-group">
-          <label>🔢 سطر در هر برگ</label>
-          <input type="number" id="rowsPerPage" value="25" min="1" max="500">
-        </div>
       </div>
-
-      <div class="action-buttons">
-        <button class="btn-primary" id="generateBtn">⚡ تولید برگه‌ها</button>
-        <button class="btn-secondary" id="printBtn">🖨️ چاپ / PDF</button>
-      </div>
-    </div>
-
-    <div id="globalMessage" class="message" style="display: none;"></div>
-
-    <!-- Preview area -->
-    <div class="a4-preview" id="a4Preview"></div>
-
-    <div class="small-note">
-      ⓘ سربرگ و پاورقی اکنون به صورت هوشمندانه نمایش داده می‌شوند؛ تصویر شما با نسبت اصلی حفظ می‌شود و اگر تصویر پهن باشد طبیعی‌تر نمایش می‌یابد.
+      <button class="btn-primary" id="generateStep1Btn">⚡ مرحله ۱: تولید و دانلود اکسل شماره‌دار</button>
     </div>
   </div>
 
-  <script>
-  (function() {
-    // DOM elements
-    const fileInput = document.getElementById('excelFileInput');
-    const headerImageInput = document.getElementById('headerImageInput');
-    const footerImageInput = document.getElementById('footerImageInput');
-    const headerPreview = document.getElementById('headerPreview');
-    const footerPreview = document.getElementById('footerPreview');
-    const fileInfo = document.getElementById('fileInfo');
-    const recordCounter = document.getElementById('recordCounter');
-    const generateBtn = document.getElementById('generateBtn');
-    const printBtn = document.getElementById('printBtn');
-    const a4Preview = document.getElementById('a4Preview');
-    const msgDiv = document.getElementById('globalMessage');
-    const rowsPerPageInput = document.getElementById('rowsPerPage');
+  <!-- پنل مرحله دوم: آپلود اکسل شماره‌دار و تفکیک بر اساس مرجع (مکتوب به ولایت) -->
+  <div class="step-panel">
+    <div class="step-title">مرحله ۲: بارگذاری فایل مرحله ۱ و تولید برگه‌ها بر اساس مرجع</div>
+    <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end;">
+      <div class="file-zone">
+        <input type="file" id="excelFileStep2" accept=".xlsx, .xls, .csv" style="display: none;">
+        <label for="excelFileStep2" class="file-label">📂 انتخاب فایل اکسل مرحله ۱</label>
+        <div class="file-info" id="fileInfoStep2">فایلی انتخاب نشده</div>
+      </div>
+      <div class="field-group">
+        <label>🔢 سطر در هر برگ</label>
+        <input type="number" id="rowsPerPage" value="25" min="1" max="500">
+      </div>
+      <button class="btn-success" id="generateStep2Btn">🗂️ مرحله ۲: تولید برگه‌های تفکیک شده</button>
+    </div>
+  </div>
 
-    let parsedRows = [];
-    let headerImageUrl = null;
-    let footerImageUrl = null;
+  <!-- آپلود تصاویر سربرگ و پاورقی (مشترک) -->
+  <div class="step-panel" style="background: #f5f9ff;">
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+      <div class="image-upload-item">
+        <label>🖼️ سربرگ</label>
+        <input type="file" id="headerImageInput" accept="image/*" style="display: none;">
+        <label for="headerImageInput" class="file-label" style="padding: 6px 10px;">انتخاب سربرگ</label>
+        <img id="headerPreview" class="image-preview" src="#" alt="پیش‌نمایش سربرگ" style="display: none;">
+      </div>
+      <div class="image-upload-item">
+        <label>🖼️ پاورقی</label>
+        <input type="file" id="footerImageInput" accept="image/*" style="display: none;">
+        <label for="footerImageInput" class="file-label" style="padding: 6px 10px;">انتخاب پاورقی</label>
+        <img id="footerPreview" class="image-preview" src="#" alt="پیش‌نمایش پاورقی" style="display: none;">
+      </div>
+      <button class="btn-secondary" id="printBtn">🖨️ چاپ / PDF</button>
+    </div>
+  </div>
 
-    function showMessage(text, type = 'info', timeout = 5000) {
-      msgDiv.style.display = 'block';
-      msgDiv.className = `message ${type}`;
-      msgDiv.innerText = text;
-      if (timeout > 0) setTimeout(() => { msgDiv.style.display = 'none'; }, timeout);
+  <div id="globalMessage" class="message" style="display: none;"></div>
+
+  <!-- پیش‌نمایش برگه‌های تولید شده (مرحله ۲) -->
+  <div class="a4-preview" id="a4Preview"></div>
+  <div class="small-note">ⓘ مرحله ۱: اکسل شماره‌دار تولید کنید. سپس در فایل خروجی می‌توانید ستون "نمبر مکتوب" را به دلخواه ویرایش نمایید. مرحله ۲: همین فایل را بارگذاری کنید؛ اگر "نمبر مکتوب" پر باشد همان نشان داده می‌شود، در غیر اینصورت مقدار "مکتوب" خودکار درج می‌گردد.</div>
+</div>
+
+<script>
+(function() {
+  // -------------------- عناصر DOM --------------------
+  // مرحله 1
+  const fileInputStep1 = document.getElementById('excelFileStep1');
+  const fileInfoStep1 = document.getElementById('fileInfoStep1');
+  const generateStep1Btn = document.getElementById('generateStep1Btn');
+  const maktubStart = document.getElementById('maktubStart');
+  const dateShamsi = document.getElementById('dateShamsi');
+  const dateQamari = document.getElementById('dateQamari');
+
+  // مرحله 2
+  const fileInputStep2 = document.getElementById('excelFileStep2');
+  const fileInfoStep2 = document.getElementById('fileInfoStep2');
+  const generateStep2Btn = document.getElementById('generateStep2Btn');
+  const rowsPerPageInput = document.getElementById('rowsPerPage');
+
+  // تصاویر
+  const headerImageInput = document.getElementById('headerImageInput');
+  const footerImageInput = document.getElementById('footerImageInput');
+  const headerPreview = document.getElementById('headerPreview');
+  const footerPreview = document.getElementById('footerPreview');
+
+  // پیش‌نمایش و پیام
+  const a4Preview = document.getElementById('a4Preview');
+  const msgDiv = document.getElementById('globalMessage');
+  const printBtn = document.getElementById('printBtn');
+  const recordCounter = document.getElementById('recordCounter');
+
+  // متغیرهای سراسری
+  let headerImageUrl = null;
+  let footerImageUrl = null;
+  // ذخیره موقت هدرهای اصلی برای مرحله 1
+  let step1RawData = { headers: null, rows: [] };
+
+  // -------------------- توابع کمکی --------------------
+  function showMessage(text, type = 'info', timeout = 5000) {
+    msgDiv.style.display = 'block';
+    msgDiv.className = `message ${type}`;
+    msgDiv.innerText = text;
+    if (timeout > 0) setTimeout(() => { msgDiv.style.display = 'none'; }, timeout);
+  }
+
+  function adaptImageFit(imgEl) {
+    if (!imgEl.complete || imgEl.naturalWidth === 0) {
+      imgEl.addEventListener('load', () => adaptImageFit(imgEl), { once: true });
+      return;
     }
+    const ratio = imgEl.naturalWidth / imgEl.naturalHeight;
+    imgEl.style.objectFit = ratio >= 2.2 ? 'cover' : 'contain';
+    imgEl.style.maxWidth = '98%';
+    imgEl.style.maxHeight = 'calc(100% - 6px)';
+  }
 
-    function updateFileInfo(fileName, rowCount) {
-      fileInfo.innerText = `📄 ${fileName} | ${rowCount} رکورد`;
-      recordCounter.innerText = `${rowCount} ردیف loaded`;
-    }
+  // -------------------- آپلود تصاویر (مشترک) --------------------
+  headerImageInput.addEventListener('change', function(e) {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      headerImageUrl = event.target.result;
+      headerPreview.src = headerImageUrl;
+      headerPreview.style.display = 'inline-block';
+      const tmp = new Image();
+      tmp.onload = () => adaptImageFit(headerPreview);
+      tmp.src = headerImageUrl;
+    };
+    reader.readAsDataURL(file);
+  });
 
-    // ---------- Image helper: choose object-fit based on natural ratio ----------
-    function adaptImageFit(imgEl) {
-      // If image not loaded yet, bind onload
-      if (!imgEl.complete || imgEl.naturalWidth === 0) {
-        imgEl.addEventListener('load', () => adaptImageFit(imgEl), { once: true });
-        return;
+  footerImageInput.addEventListener('change', function(e) {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      footerImageUrl = event.target.result;
+      footerPreview.src = footerImageUrl;
+      footerPreview.style.display = 'inline-block';
+      const tmp = new Image();
+      tmp.onload = () => adaptImageFit(footerPreview);
+      tmp.src = footerImageUrl;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // -------------------- مرحله 1: خواندن فایل اصلی و تولید اکسل شماره‌دار --------------------
+  fileInputStep1.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) { fileInfoStep1.innerText = 'فایلی انتخاب نشده'; return; }
+    fileInfoStep1.innerText = `📄 ${file.name} (در حال خواندن...)`;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
+
+        // پیدا کردن سطر سرستون (حاوی 'سی سی', 'انجن', 'شاسی' و 'مکتوب به ولایت')
+        let headerRowIndex = -1, headers = [];
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          if (!Array.isArray(row)) continue;
+          const rowCells = row.map(c => (c || '').toString().trim());
+          if (rowCells.some(c => c.includes('سی سی')) &&
+              rowCells.some(c => c.includes('انجن')) &&
+              rowCells.some(c => c.includes('شاسی')) &&
+              rowCells.some(c => c.includes('مکتوب به ولایت'))) {
+            headerRowIndex = i;
+            headers = rowCells;
+            break;
+          }
+        }
+        if (headerRowIndex === -1) {
+          showMessage('❌ سرستون‌های مورد نیاز (سی سی, انجن, شاسی, مکتوب به ولایت) یافت نشد', 'error');
+          fileInfoStep1.innerText = 'خطا در یافتن ستون‌ها';
+          return;
+        }
+
+        // ذخیره تمام ردیف‌های داده (آرایه‌ای از آرایه‌ها)
+        const dataRows = [];
+        for (let r = headerRowIndex + 1; r < rows.length; r++) {
+          const row = rows[r];
+          if (!Array.isArray(row) || row.length === 0) continue;
+          if (row[0] !== undefined && row[0] !== null && row[0].toString().trim() !== '') {
+            dataRows.push(row.slice());
+          }
+        }
+
+        if (dataRows.length === 0) {
+          showMessage('❌ هیچ ردیف معتبری یافت نشد', 'error');
+          fileInfoStep1.innerText = '۰ رکورد';
+          return;
+        }
+
+        step1RawData = { headers, rows: dataRows };
+        fileInfoStep1.innerText = `📄 ${file.name} | ${dataRows.length} رکورد`;
+        recordCounter.innerText = `${dataRows.length} ردیف (مرحله ۱)`;
+        showMessage(`✅ مرحله ۱: ${dataRows.length} رکورد آماده شماره‌گذاری`, 'success');
+      } catch (err) {
+        console.error(err);
+        showMessage('❌ خطا در خواندن فایل: ' + err.message, 'error');
+        fileInfoStep1.innerText = 'خطا';
       }
-      const w = imgEl.naturalWidth;
-      const h = imgEl.naturalHeight;
-      const ratio = w / h;
-      // wide banners -> cover (fills width nicely)
-      if (ratio >= 2.2) {
-        imgEl.style.objectFit = 'cover';
-      } else {
-        // logos / tall images -> contain (don't crop)
-        imgEl.style.objectFit = 'contain';
-      }
-      // ensure image never exceeds container height/width (CSS limits already)
-      imgEl.style.maxWidth = '98%';
-      imgEl.style.maxHeight = 'calc(100% - 6px)';
-      imgEl.style.objectPosition = 'center center';
+    };
+    reader.readAsArrayBuffer(file);
+  });
+
+  // تولید و دانلود اکسل مرحله 1
+  generateStep1Btn.addEventListener('click', function() {
+    if (!step1RawData.rows || step1RawData.rows.length === 0) {
+      showMessage('⛔ ابتدا یک فایل اکسل معتبر در مرحله ۱ بارگذاری کنید', 'error');
+      return;
+    }
+    const start = parseInt(maktubStart.value, 10);
+    if (isNaN(start)) { showMessage('⛔ شماره شروع مکتوب معتبر وارد کنید', 'error'); return; }
+    const shamsi = dateShamsi.value.trim() || '---';
+    const qamari = dateQamari.value.trim() || '---';
+
+    const headers = step1RawData.headers;
+    const rows = step1RawData.rows;
+
+    // ساخت هدرهای خروجی: هدرهای اصلی + سه ستون جدید
+    const outputHeaders = [...headers, 'مکتوب', 'تاریخ شمسی', 'تاریخ قمری'];
+    const outputRows = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const maktubNumber = start + i;
+      const newRow = [...row, maktubNumber, shamsi, qamari];
+      outputRows.push(newRow);
     }
 
-    // ---------- Excel parsing ----------
-    fileInput.addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (!file) { fileInfo.innerText = 'فایلی انتخاب نشده'; return; }
-      fileInfo.innerText = `📄 ${file.name} (در حال خواندن...)`;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const data = new Uint8Array(event.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([outputHeaders, ...outputRows]);
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    XLSX.writeFile(wb, 'motor_numbered.xlsx');
+    showMessage(`📥 فایل اکسل شماره‌دار با ${rows.length} ردیف دانلود شد`, 'success');
+  });
 
-          // Find header row (contains 'سی سی', 'انجن', 'شاسی')
-          let headerRowIndex = -1;
-          let headers = [];
-          for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            if (!Array.isArray(row)) continue;
-            const rowCells = row.map(c => (c || '').toString().trim());
-            if (rowCells.some(c => c.includes('سی سی')) &&
-                rowCells.some(c => c.includes('انجن')) &&
-                rowCells.some(c => c.includes('شاسی'))) {
-              headerRowIndex = i; headers = rowCells; break;
-            }
-          }
-          if (headerRowIndex === -1) {
-            showMessage('❌ سرستون‌های مورد نظر (سی سی, انجن, شاسی) پیدا نشد', 'error');
-            fileInfo.innerText = `📄 ${file.name} (خطا در یافتن ستون‌ها)`; return;
-          }
+  // -------------------- مرحله 2: خواندن فایل مرحله 1 و تولید برگه بر اساس مرجع --------------------
+  let step2Data = []; // هر شی شامل فیلدهای manualMaktub, autoMaktub و ...
 
-          // Column mapping
-          const colMap = { serialNo:-1, company:-1, engine:-1, chassis:-1, cc:-1, model:-1, reference:-1 };
-          for (let idx=0; idx<headers.length; idx++) {
-            const cell = headers[idx].replace(/[\s\u200c]+/g,' ').trim();
-            if (cell.includes('شماره')) colMap.serialNo = idx;
-            if (cell.includes('اسم شرکت')) colMap.company = idx;
-            if (cell.includes('انجن')) colMap.engine = idx;
-            if (cell.includes('شاسی')) colMap.chassis = idx;
-            if (cell.includes('سی سی')) colMap.cc = idx;
-            if (cell.includes('مدل')) colMap.model = idx;
-            if (cell.includes('مرجع')) colMap.reference = idx;
-          }
-          if (colMap.serialNo===-1 || colMap.company===-1 || colMap.engine===-1 || colMap.chassis===-1) {
-            showMessage('❌ ستون‌های اجباری (شماره, اسم شرکت, انجن, شاسی) یافت نشد', 'error');
-            fileInfo.innerText = `📄 ${file.name} (ستون‌های ناقص)`; return;
-          }
+  fileInputStep2.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) { fileInfoStep2.innerText = 'فایلی انتخاب نشده'; step2Data = []; return; }
+    fileInfoStep2.innerText = `📄 ${file.name} (در حال خواندن...)`;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
+        if (rows.length < 2) { throw new Error('فایل خالی است'); }
 
-          // Extract data rows
-          const dataRows = [];
-          for (let r = headerRowIndex + 1; r < rows.length; r++) {
-            const row = rows[r];
-            if (!Array.isArray(row) || row.length === 0) continue;
-            const serial = row[colMap.serialNo] ? row[colMap.serialNo].toString().trim() : '';
-            if (serial === '') continue;
+        const headers = rows[0].map(h => (h || '').toString().trim());
+        // ایندکس ستون‌های مورد نیاز
+        const idxMap = {
+          serialNo: -1, company: -1, engine: -1, chassis: -1, cc: -1, model: -1,
+          province: -1,          // مکتوب به ولایت
+          manualMaktub: -1,      // نمبر مکتوب (دستی)
+          autoMaktub: -1,        // مکتوب (خودکار)
+          shamsi: -1, qamari: -1
+        };
+        headers.forEach((h, idx) => {
+          if (h.includes('شماره')) idxMap.serialNo = idx;
+          else if (h.includes('اسم شرکت')) idxMap.company = idx;
+          else if (h.includes('انجن')) idxMap.engine = idx;
+          else if (h.includes('شاسی')) idxMap.chassis = idx;
+          else if (h.includes('سی سی')) idxMap.cc = idx;
+          else if (h.includes('مدل')) idxMap.model = idx;
+          else if (h.includes('مکتوب به ولایت')) idxMap.province = idx;
+          else if (h === 'نمبر مکتوب') idxMap.manualMaktub = idx;  // دقیقاً مطابق
+          else if (h === 'مکتوب') idxMap.autoMaktub = idx;
+          else if (h.includes('تاریخ شمسی')) idxMap.shamsi = idx;
+          else if (h.includes('تاریخ قمری')) idxMap.qamari = idx;
+        });
+
+        // بررسی وجود ستون‌های اجباری
+        if (idxMap.serialNo === -1 || idxMap.company === -1 || idxMap.engine === -1 || idxMap.chassis === -1 || idxMap.province === -1 || (idxMap.manualMaktub === -1 && idxMap.autoMaktub === -1)) {
+          showMessage('❌ ستون‌های ضروری (شماره, شرکت, انجن, شاسی, مکتوب به ولایت, و حداقل یکی از نمبر مکتوب/مکتوب) در فایل مرحله ۲ یافت نشد', 'error');
+          fileInfoStep2.innerText = 'خطا در ساختار فایل';
+          return;
+        }
+
+        const dataRows = [];
+        for (let r = 1; r < rows.length; r++) {
+          const row = rows[r];
+          if (!Array.isArray(row) || row.length === 0) continue;
+          if (row[idxMap.serialNo] !== undefined && row[idxMap.serialNo] !== null && row[idxMap.serialNo].toString().trim() !== '') {
+            const manual = (idxMap.manualMaktub !== -1 && row[idxMap.manualMaktub] !== undefined) ? row[idxMap.manualMaktub].toString().trim() : '';
+            const auto = (idxMap.autoMaktub !== -1 && row[idxMap.autoMaktub] !== undefined) ? row[idxMap.autoMaktub].toString().trim() : '';
             dataRows.push({
-              serialNo: serial,
-              company: row[colMap.company] ? row[colMap.company].toString().trim() : '',
-              engine: row[colMap.engine] ? row[colMap.engine].toString().trim() : '',
-              chassis: row[colMap.chassis] ? row[colMap.chassis].toString().trim() : '',
-              cc: (colMap.cc !== -1 && row[colMap.cc]) ? row[colMap.cc].toString().trim() : '',
-              model: (colMap.model !== -1 && row[colMap.model]) ? row[colMap.model].toString().trim() : '',
-              reference: (colMap.reference !== -1 && row[colMap.reference]) ? row[colMap.reference].toString().trim() : '',
+              serialNo: row[idxMap.serialNo]?.toString().trim() || '',
+              company: row[idxMap.company]?.toString().trim() || '',
+              engine: row[idxMap.engine]?.toString().trim() || '',
+              chassis: row[idxMap.chassis]?.toString().trim() || '',
+              cc: idxMap.cc !== -1 ? (row[idxMap.cc]?.toString().trim() || '') : '',
+              model: idxMap.model !== -1 ? (row[idxMap.model]?.toString().trim() || '') : '',
+              province: row[idxMap.province]?.toString().trim() || '',
+              manualMaktub: manual,
+              autoMaktub: auto,
+              shamsi: idxMap.shamsi !== -1 ? (row[idxMap.shamsi]?.toString().trim() || '') : '',
+              qamari: idxMap.qamari !== -1 ? (row[idxMap.qamari]?.toString().trim() || '') : ''
             });
           }
-
-          if (dataRows.length === 0) {
-            showMessage('❌ هیچ ردیف معتبری یافت نشد', 'error');
-            fileInfo.innerText = `📄 ${file.name} (۰ رکورد)`; return;
-          }
-          parsedRows = dataRows;
-          updateFileInfo(file.name, parsedRows.length);
-          showMessage(`✅ ${parsedRows.length} رکورد بارگذاری شد`, 'success');
-        } catch (err) {
-          console.error(err);
-          showMessage('❌ خطا در پردازش فایل: ' + err.message, 'error');
-          fileInfo.innerText = `📄 ${file.name} (خطا)`;
         }
-      };
-      reader.readAsArrayBuffer(file);
+        step2Data = dataRows;
+        fileInfoStep2.innerText = `📄 ${file.name} | ${step2Data.length} رکورد`;
+        recordCounter.innerText = `${step2Data.length} ردیف (مرحله ۲)`;
+        showMessage(`✅ فایل مرحله ۲ بارگذاری شد، ${step2Data.length} رکورد`, 'success');
+      } catch (err) {
+        console.error(err);
+        showMessage('❌ خطا در خواندن فایل مرحله ۲: ' + err.message, 'error');
+        fileInfoStep2.innerText = 'خطا';
+        step2Data = [];
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+
+  // تابع تولید برگه‌ها بر اساس مرجع (ولایت) با اولویت "نمبر مکتوب" دستی
+  function generatePagesByProvince() {
+    if (step2Data.length === 0) {
+      showMessage('⛔ ابتدا فایل مرحله ۲ را بارگذاری کنید', 'error');
+      return;
+    }
+    let rowsPerPage = parseInt(rowsPerPageInput.value, 10) || 25;
+    if (rowsPerPage < 1) rowsPerPage = 25;
+
+    a4Preview.innerHTML = '';
+
+    // گروه‌بندی بر اساس استان (مکتوب به ولایت)
+    const groups = {};
+    step2Data.forEach(row => {
+      const prov = row.province || 'نامشخص';
+      if (!groups[prov]) groups[prov] = [];
+      groups[prov].push(row);
     });
 
-    // ---------- Header preview handling ----------
-    headerImageInput.addEventListener('change', function(e) {
-      const file = e.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        headerImageUrl = event.target.result;
-        headerPreview.src = headerImageUrl;
-        headerPreview.style.display = 'inline-block';
-        headerPreview.style.objectFit = 'contain';
-        headerPreview.style.maxHeight = '48px';
-        // adapt fit by creating a temporary Image object
-        const tmp = new Image();
-        tmp.onload = () => {
-          if (tmp.naturalWidth / tmp.naturalHeight >= 2.2) headerPreview.style.objectFit = 'cover';
-          else headerPreview.style.objectFit = 'contain';
-        };
-        tmp.src = headerImageUrl;
-      };
-      reader.readAsDataURL(file);
-    });
+    for (const [province, rows] of Object.entries(groups)) {
+      if (rows.length === 0) continue;
 
-    // ---------- Footer preview handling ----------
-    footerImageInput.addEventListener('change', function(e) {
-      const file = e.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        footerImageUrl = event.target.result;
-        footerPreview.src = footerImageUrl;
-        footerPreview.style.display = 'inline-block';
-        footerPreview.style.objectFit = 'contain';
-        footerPreview.style.maxHeight = '48px';
-        const tmp = new Image();
-        tmp.onload = () => {
-          if (tmp.naturalWidth / tmp.naturalHeight >= 2.2) footerPreview.style.objectFit = 'cover';
-          else footerPreview.style.objectFit = 'contain';
-        };
-        tmp.src = footerImageUrl;
-      };
-      reader.readAsDataURL(file);
-    });
+      const sep = document.createElement('div');
+      sep.className = 'province-separator';
+      //sep.innerText = `🌍 مرجع: ${province} (${rows.length} موتر)`;
+      a4Preview.appendChild(sep);
 
-    // ---------- Generate multi-page A3 sheets ----------
-    function generatePages() {
-      if (parsedRows.length === 0) { showMessage('⛔ ابتدا یک فایل اکسل معتبر بارگذاری کنید', 'error'); return; }
-      const startMaktub = parseInt(document.getElementById('maktubStart').value, 10);
-      if (isNaN(startMaktub)) { showMessage('⛔ شماره شروع مکتوب معتبر وارد کنید', 'error'); return; }
-      const shamsi = document.getElementById('dateShamsi').value.trim() || '---';
-      const qamari = document.getElementById('dateQamari').value.trim() || '---';
-      let rowsPerPage = parseInt(rowsPerPageInput.value, 10) || 25; if (rowsPerPage < 1) rowsPerPage = 25;
-
-      a4Preview.innerHTML = '';
-      const totalRows = parsedRows.length;
-      const totalPages = Math.ceil(totalRows / rowsPerPage);
-
+      const totalPages = Math.ceil(rows.length / rowsPerPage);
       for (let page = 0; page < totalPages; page++) {
-        const startIdx = page * rowsPerPage;
-        const endIdx = Math.min(startIdx + rowsPerPage, totalRows);
-        const pageRows = parsedRows.slice(startIdx, endIdx);
+        const start = page * rowsPerPage;
+        const end = Math.min(start + rowsPerPage, rows.length);
+        const pageRows = rows.slice(start, end);
 
         const sheet = document.createElement('div'); sheet.className = 'a4-paper';
 
-        // Header
+        // سربرگ
         const headerDiv = document.createElement('div'); headerDiv.className = 'header-container';
         if (headerImageUrl) {
           const img = document.createElement('img');
           img.className = 'sheet-header-img';
           img.src = headerImageUrl;
-          // adapt fit when loaded
           img.addEventListener('load', () => adaptImageFit(img), { once: true });
           headerDiv.appendChild(img);
         } else {
           headerDiv.innerText = ' [ سربرگ انتخاب نشده ] ';
           headerDiv.style.color = '#777';
-          headerDiv.style.fontSize = '12px';
-          headerDiv.style.display = 'flex';
-          headerDiv.style.alignItems = 'center';
-          headerDiv.style.justifyContent = 'center';
+          headerDiv.style.display = 'flex'; headerDiv.style.alignItems = 'center'; headerDiv.style.justifyContent = 'center';
         }
         sheet.appendChild(headerDiv);
 
-        // Table
+        // جدول — عنوان ستون هشتم "مرجع" است، ستون نهم "مکتوب" (ترکیبی)
         const tableContainer = document.createElement('div'); tableContainer.className = 'table-container';
         let tableHtml = `<table class="motor-table" dir="rtl"><thead><tr>
           <th>شماره</th><th>نام شرکت</th><th>نام سیکل</th><th>انجین</th><th>شاسی</th>
           <th>سی سی</th><th>مدل</th><th>مرجع</th><th>مکتوب</th><th>تاریخ شمسی</th><th>تاریخ قمری</th>
         </tr></thead><tbody>`;
-        for (let i = 0; i < pageRows.length; i++) {
-          const r = pageRows[i];
-          const maktubNumber = startMaktub + (startIdx + i);
+
+        pageRows.forEach(r => {
+          // تعیین شماره مکتوب نهایی: اگر manualMaktub غیر خالی باشد از آن استفاده کن، در غیر اینصورت autoMaktub
+          let finalMaktub = r.manualMaktub && r.manualMaktub !== '' ? r.manualMaktub : r.autoMaktub;
+          if (finalMaktub === undefined) finalMaktub = ''; // ایمنی
+
           const esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
           tableHtml += `<tr>
             <td title="${esc(r.serialNo)}">${esc(r.serialNo)}</td>
@@ -521,17 +601,17 @@
             <td title="${esc(r.chassis)}">${esc(r.chassis)}</td>
             <td title="${esc(r.cc)}">${esc(r.cc)}</td>
             <td title="${esc(r.model)}">${esc(r.model)}</td>
-            <td title="${esc(r.reference)}">${esc(r.reference)}</td>
-            <td title="${maktubNumber}">${maktubNumber}</td>
-            <td title="${esc(shamsi)}">${esc(shamsi)}</td>
-            <td title="${esc(qamari)}">${esc(qamari)}</td>
+            <td title="${esc(r.province)}">${esc(r.province)}</td>
+            <td title="${esc(finalMaktub)}">${esc(finalMaktub)}</td>
+            <td title="${esc(r.shamsi)}">${esc(r.shamsi)}</td>
+            <td title="${esc(r.qamari)}">${esc(r.qamari)}</td>
           </tr>`;
-        }
+        });
         tableHtml += '</tbody></table>';
         tableContainer.innerHTML = tableHtml;
         sheet.appendChild(tableContainer);
 
-        // Footer
+        // پاورقی
         const footerDiv = document.createElement('div'); footerDiv.className = 'footer-container';
         if (footerImageUrl) {
           const img = document.createElement('img');
@@ -542,30 +622,26 @@
         } else {
           footerDiv.innerText = ' [ پاورقی انتخاب نشده ] ';
           footerDiv.style.color = '#777';
-          footerDiv.style.fontSize = '12px';
-          footerDiv.style.display = 'flex';
-          footerDiv.style.alignItems = 'center';
-          footerDiv.style.justifyContent = 'center';
+          footerDiv.style.display = 'flex'; footerDiv.style.alignItems = 'center'; footerDiv.style.justifyContent = 'center';
         }
         sheet.appendChild(footerDiv);
 
         a4Preview.appendChild(sheet);
       }
-
-      showMessage(`✅ ${totalPages} برگ A3 با مجموع ${totalRows} سطر تولید شد`, 'success');
     }
+    showMessage(`✅ برگه‌ها بر اساس مرجع تولید شد (مجموع ${step2Data.length} رکورد)`, 'success');
+  }
 
-    function printSheets() {
-      if (a4Preview.children.length === 0) { showMessage('⛔ ابتدا برگه‌ها را تولید کنید', 'error'); return; }
-      window.print();
-    }
+  generateStep2Btn.addEventListener('click', generatePagesByProvince);
 
-    generateBtn.addEventListener('click', generatePages);
-    printBtn.addEventListener('click', printSheets);
+  // چاپ
+  printBtn.addEventListener('click', () => {
+    if (a4Preview.children.length === 0) { showMessage('⛔ ابتدا برگه‌ها را در مرحله ۲ تولید کنید', 'error'); return; }
+    window.print();
+  });
 
-    // initial hint
-    showMessage('فایل اکسل را بارگذاری کنید و سپس روی "تولید برگه‌ها" کلیک کنید.', 'info', 4000);
-  })();
-  </script>
+  showMessage('لطفاً مرحله ۱: فایل اصلی را بارگذاری و اکسل شماره‌دار را دریافت کنید. سپس می‌توانید "نمبر مکتوب" را ویرایش نمایید.', 'info', 6000);
+})();
+</script>
 </body>
 </html>
