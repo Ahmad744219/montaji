@@ -1,4 +1,4 @@
-const CACHE = 'microapps-cache-v2.0.2';
+const CACHE = 'microapps-cache-v2.0.3';
 const OFFLINE_URL = '/';
 const ASSETS = [
   '/montaji/',
